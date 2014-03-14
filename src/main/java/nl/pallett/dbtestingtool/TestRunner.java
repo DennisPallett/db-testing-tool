@@ -4,6 +4,12 @@
  */
 package nl.pallett.dbtestingtool;
 
+import au.com.bytecode.opencsv.CSVReader;
+import au.com.bytecode.opencsv.CSVWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Observable;
@@ -75,6 +81,10 @@ public class TestRunner extends Observable implements Runnable {
     protected int queriesFinished = 0;
     
     protected int querySetsFinished = 0;
+    
+    protected CSVWriter resultsWriter;
+    
+    protected ArrayList<String[]> existingResults = new ArrayList<String[]>();
         
     public TestRunner () {
         state = State.NEW;
@@ -106,6 +116,14 @@ public class TestRunner extends Observable implements Runnable {
         
         logMessage("Using dataset " + source);
         
+        try {
+            initResultsFile();
+        } catch (Exception ex) {
+            logMessage("ERROR: unable to initialize results file");
+            state = State.FAILED;
+            return;
+        }
+        
         logMessage("Opening connection to database...");
         try {
             database.openConnection();
@@ -135,8 +153,49 @@ public class TestRunner extends Observable implements Runnable {
         }
         logMessage("Connection closed");
         
+        try {
+            resultsWriter.close();
+        } catch (IOException ex) {
+            // don't care
+        }
+        
         state = State.FINISHED;
         logMessage("Testrunner finished");        
+    }
+    
+    protected void initResultsFile() throws Exception {
+        logMessage("Initializing results file...");
+        
+        File resultsDirObj = new File(resultsDir);
+        
+        if (resultsDirObj.exists() == false) {
+            throw new Exception("Results directory does not exist");
+        }
+        
+        if (resultsDirObj.isDirectory() == false) {
+            throw new Exception("Results directory is not a valid directory");
+        }
+        
+                        
+        File resultsFile = new File(resultsDirObj.getCanonicalPath() + "\\" + database.toString().toLowerCase() + "-" + this.database.getTable() + ".csv");
+        
+        if (resultsFile.exists()) {
+            logMessage("Found existing results file, importing existing results...");
+            CSVReader reader = new CSVReader(new FileReader(resultsFile), ',', '"');
+            String [] nextLine;
+            int counter = 0;
+            while ((nextLine = reader.readNext()) != null) {
+                // add to existing results
+                existingResults.add(nextLine);
+                counter++;
+            }
+            reader.close();
+            logMessage("Imported " + counter + " existing results");
+        }
+        
+        resultsWriter = new CSVWriter(new FileWriter(resultsFile.getAbsolutePath()), ',', '"');
+        
+        logMessage("Results file initialized: " + resultsFile.getAbsolutePath());
     }
     
     protected void runQueries() throws SQLException {
@@ -173,18 +232,60 @@ public class TestRunner extends Observable implements Runnable {
         }
         
         logMessage("Executing query:\n" + sql);
+        String[] result = {};
         
-        QueryResult queryResult = database.runQuery(sql);
+        // check if a result already exists for this query
+        for(String[] line : existingResults) {
+            if (
+                line[0].equals(currTestSet.getName())
+                && line[1].equals(currQuerySet.getName())
+                && line[2].equals(String.valueOf(currQuerySet.getSize()))
+                && line[3].equals(String.valueOf(currQueryId))
+                && line[4].equals(String.valueOf(currGroup))
+            ) {
+                    result = line;
+                    break;
+            }
+        }
+            
+        if (result.length > 1) {
+            logMessage("Found existing result for query");
+            logMessage("Query runtime: " + result[6] + " ms");
+        } else {        
+            QueryResult queryResult = database.runQuery(sql);
+
+            if (queryResult.getRecordCount() != group.intValue() && queryResult.getRecordCount() != group.intValue()+1) {
+                throw new SQLException("Record count of result does not match number of expected groups. "
+                        + "This is an indication that the query is incorrect! Expected: " + group + ", got: " + queryResult.getRecordCount());
+            }       
+
+            logMessage("Query has finished, total records returned: " + queryResult.getRecordCount());
+            logMessage("Query runtime: " + queryResult.getRunTime() + " ms");
         
-        if (queryResult.getRecordCount() != group.intValue() && queryResult.getRecordCount() != group.intValue()+1) {
-            throw new SQLException("Record count of result does not match number of expected groups. "
-                    + "This is an indication that the query is incorrect! Expected: " + group + ", got: " + queryResult.getRecordCount());
-        }       
+            // TODO: save results  
+            result = new String[]{
+                // identifying info:
+                this.currTestSet.getName(),
+                this.currQuerySet.getName(),
+                String.valueOf(this.currQuerySet.getSize()),
+                String.valueOf(this.currQueryId),
+                String.valueOf(this.currGroup),
+
+                // actual measures:
+                String.valueOf(queryResult.getRecordCount()),
+                String.valueOf(queryResult.getRunTime())            
+            };
+        }
         
-        logMessage("Query has finished, total records returned: " + queryResult.getRecordCount());
-        logMessage("Query runtime: " + queryResult.getRunTime() + " ms");
+        // write to results file
+        resultsWriter.writeNext(result);
         
-        // TODO: save results        
+        // immediately flush
+        try {
+            resultsWriter.flush();
+        } catch (IOException ex) {
+            throw new SQLException(ex);
+        }
         
         queriesFinished++;        
     }
