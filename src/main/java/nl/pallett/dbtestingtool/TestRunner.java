@@ -60,7 +60,7 @@ public class TestRunner extends Observable implements Runnable {
     
     protected int timeout;
     
-    protected String resultsDir;
+    protected File resultsDir;
     
     protected int queryCountPerSet;
     
@@ -119,8 +119,9 @@ public class TestRunner extends Observable implements Runnable {
         try {
             initResultsFile();
         } catch (Exception ex) {
-            logMessage("ERROR: unable to initialize results file");
             state = State.FAILED;
+            lastException = ex;
+            logMessage("ERROR: unable to initialize results file");
             return;
         }
         
@@ -165,19 +166,17 @@ public class TestRunner extends Observable implements Runnable {
     
     protected void initResultsFile() throws Exception {
         logMessage("Initializing results file...");
-        
-        File resultsDirObj = new File(resultsDir);
-        
-        if (resultsDirObj.exists() == false) {
+               
+        if (resultsDir.exists() == false) {
             throw new Exception("Results directory does not exist");
         }
         
-        if (resultsDirObj.isDirectory() == false) {
+        if (resultsDir.isDirectory() == false) {
             throw new Exception("Results directory is not a valid directory");
         }
         
                         
-        File resultsFile = new File(resultsDirObj.getCanonicalPath() + "\\" + database.toString().toLowerCase() + "-" + this.database.getTable() + ".csv");
+        File resultsFile = new File(resultsDir.getCanonicalPath() + "\\" + database.toString().toLowerCase() + "-" + this.database.getTable() + ".csv");
         
         if (resultsFile.exists()) {
             logMessage("Found existing results file, importing existing results...");
@@ -390,14 +389,14 @@ public class TestRunner extends Observable implements Runnable {
     /**
      * @return the resultsDir
      */
-    public String getResultsDir() {
+    public File getResultsDir() {
         return resultsDir;
     }
 
     /**
      * @param resultsDir the resultsDir to set
      */
-    public void setResultsDir(String resultsDir) {
+    public void setResultsDir(File resultsDir) {
         this.resultsDir = resultsDir;
     }
 

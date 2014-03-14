@@ -4,6 +4,7 @@
  */
 package nl.pallett.dbtestingtool.gui;
 
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -100,7 +101,7 @@ public class TestScreen extends javax.swing.JFrame implements Observer {
         testRunner.setDatabase(database);
         testRunner.setQueryCountPerSet(3);
         testRunner.setTimeout(300);
-        testRunner.setResultsDir("D:\\Downloads");
+        testRunner.setResultsDir(new File("D:\\Downloads"));
         
         TestScreen testScreen = new TestScreen(testRunner);
         testScreen.setVisible(true);
@@ -481,6 +482,7 @@ public class TestScreen extends javax.swing.JFrame implements Observer {
             Exception lastException = testRunner.getLastException();
             if (lastException != null) {
                 logMessage("Last exception: \n" + lastException.getMessage());
+                lastException.printStackTrace();
             }
         }
                

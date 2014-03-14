@@ -104,13 +104,16 @@ public class SelectQueriesScreen extends javax.swing.JFrame {
                 return canEdit [columnIndex];
             }
         });
+        tblTestSets.setColumnSelectionAllowed(true);
         tblTestSets.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         tblTestSets.getSelectionModel().addListSelectionListener(new TableListener());
         jScrollPane1.setViewportView(tblTestSets);
         tblTestSets.getColumnModel().getSelectionModel().setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         tblTestSets.getColumnModel().getColumn(0).setResizable(false);
+        tblTestSets.getColumnModel().getColumn(0).setPreferredWidth(100);
         tblTestSets.getColumnModel().getColumn(1).setResizable(false);
         tblTestSets.getColumnModel().getColumn(2).setResizable(false);
+        tblTestSets.getColumnModel().getColumn(2).setPreferredWidth(50);
 
         btnLoadSet.setText("Load existing test profile");
         btnLoadSet.addActionListener(new java.awt.event.ActionListener() {
@@ -140,7 +143,7 @@ public class SelectQueriesScreen extends javax.swing.JFrame {
             }
         });
 
-        btnNext.setText("Continue »");
+        btnNext.setText("Continue >>");
         btnNext.setEnabled(false);
         btnNext.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {

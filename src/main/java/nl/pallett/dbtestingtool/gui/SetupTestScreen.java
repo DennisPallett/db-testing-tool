@@ -533,6 +533,7 @@ public class SetupTestScreen extends javax.swing.JFrame {
         testRunner.setGroupList(groupList);
         testRunner.setQueryCountPerSet(Integer.parseInt((String)comboQueryCount.getSelectedItem()));
         testRunner.setTimeout((Integer)spinnerTimeout.getValue());
+        testRunner.setResultsDir(resultsDir);
         
         TestScreen testScreen = new TestScreen(testRunner);
         
