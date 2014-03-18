@@ -70,7 +70,7 @@ public class PostgresDb extends Database {
     public QueryResult runQuery(String sql) throws SQLException {
         Statement q = conn.createStatement();
         
-        // TODO: time query within postgres
+        // use EXPLAIN ANALYZE to let MonetDB time query
         sql = "EXPLAIN ANALYZE " + sql;
         
         ResultSet res = q.executeQuery(sql);

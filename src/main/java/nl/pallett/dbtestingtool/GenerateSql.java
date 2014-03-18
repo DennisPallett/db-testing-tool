@@ -14,6 +14,7 @@ public abstract class GenerateSql {
     protected String table;
     
     protected abstract String generatePostgres (Node queryNode, int groupCount, int rowCount) throws Exception;
+    protected abstract String generateMonetdb (Node queryNode, int groupCount, int rowCount) throws Exception;
     
     public String generateSQL (Database database, Node queryNode, int groupCount, int rowCount) throws Exception {
         this.table = database.getTable();
@@ -21,6 +22,8 @@ public abstract class GenerateSql {
         String sql = "";
         if (database instanceof PostgresDb) {
             sql = generatePostgres(queryNode, groupCount, rowCount);
+        } else if (database instanceof MonetDb) {
+            sql = generateMonetdb(queryNode, groupCount, rowCount);
         } else {
             System.err.println("ERROR: unknown database!");
         }

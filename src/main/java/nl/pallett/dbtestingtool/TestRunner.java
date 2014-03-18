@@ -247,21 +247,19 @@ public class TestRunner extends Observable implements Runnable {
             }
         }
             
+        boolean doPause = false;
+        
         if (result.length > 1) {
             logMessage("Found existing result for query");
             logMessage("Query runtime: " + result[6] + " ms");
-        } else {        
+        } else {    
+            doPause = true;
             QueryResult queryResult = database.runQuery(sql);
-
-            if (queryResult.getRecordCount() != group.intValue() && queryResult.getRecordCount() != group.intValue()+1) {
-                throw new SQLException("Record count of result does not match number of expected groups. "
-                        + "This is an indication that the query is incorrect! Expected: " + group + ", got: " + queryResult.getRecordCount());
-            }       
 
             logMessage("Query has finished, total records returned: " + queryResult.getRecordCount());
             logMessage("Query runtime: " + queryResult.getRunTime() + " ms");
         
-            // TODO: save results  
+            // create new result array
             result = new String[]{
                 // identifying info:
                 this.currTestSet.getName(),
@@ -286,7 +284,16 @@ public class TestRunner extends Observable implements Runnable {
             throw new SQLException(ex);
         }
         
-        queriesFinished++;        
+        queriesFinished++; 
+        
+        if (doPause) {
+            logMessage("Pausing for a short while...");
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException ex) {
+                // don't care
+            }
+        }
     }
     
     protected void logMessage(String msg) {

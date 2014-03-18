@@ -15,6 +15,7 @@ import java.util.logging.Logger;
 import javax.swing.JLabel;
 import javax.swing.text.DefaultCaret;
 import nl.pallett.dbtestingtool.Database;
+import nl.pallett.dbtestingtool.MonetDb;
 import nl.pallett.dbtestingtool.PostgresDb;
 import nl.pallett.dbtestingtool.TestSet;
 import nl.pallett.dbtestingtool.TestRunner;
@@ -76,18 +77,18 @@ public class TestScreen extends javax.swing.JFrame implements Observer {
         ArrayList<TestSet> querySetList = new ArrayList<TestSet>();
         TestSet querySet = new TestSet();
         try {
-            querySet.loadFile("D:\\University\\Afstuderen\\Data\\pegel_andelfingen\\testqueries-10k.xml");
+            querySet.loadFile("D:\\University\\Afstuderen\\Data\\pegel_andelfingen\\testsets\\testqueries-10k.xml");
         } catch (Exception ex) {
             Logger.getLogger(TestScreen.class.getName()).log(Level.SEVERE, null, ex);
         }
         
         querySetList.add(querySet);
         
-        Database database = new PostgresDb();
-        database.setName("test");
+        Database database = new MonetDb();
+        database.setName("demo");
         database.setHost("localhost");
-        database.setUser("postgres");
-        database.setPassword("sa");
+        database.setUser("monetdb");
+        database.setPassword("monetdb");
         database.setTable("pegel_andelfingen_10k");
         
         ArrayList<Integer> groupList = new ArrayList<Integer>();
