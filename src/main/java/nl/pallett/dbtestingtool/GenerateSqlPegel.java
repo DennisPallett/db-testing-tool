@@ -14,7 +14,27 @@ import org.apache.commons.lang.RandomStringUtils;
  */
 public class GenerateSqlPegel extends GenerateSql {
     
-    
+    @Override
+    protected String generateSqlServer(Node queryNode, int groupCount, int rowCount) throws Exception {
+        String[] extract = extractStartEnd(queryNode);        
+        String start = extract[0];
+        String end = extract[1];
+        
+        String groupBy = "";
+        if (groupCount == 1) {
+            // this is a hack'ish way to force a group by on the whole set as a single group
+            groupBy = "measurementtype/100";
+        } else {
+            groupBy = generateGroupBy(start, end, groupCount, rowCount);
+        }
+        
+        String sql = "SELECT DISTINCT CAST(" + groupBy + " AS INT), " +
+                    " PERCENTILE_DISC(0.5) WITHIN GROUP (ORDER BY PEGEL) OVER (PARTITION BY CAST(" + groupBy + " AS INT)) AS median" +
+                    " FROM " + table + 
+                    " WHERE timed >= " + start + " AND timed <= " + end;    
+
+        return sql;
+    }
 
     @Override
     protected String generatePostgres(Node queryNode, int groupCount, int rowCount) throws Exception {
@@ -84,5 +104,7 @@ public class GenerateSqlPegel extends GenerateSql {
         
         return ret;
     }
+
+    
     
 }

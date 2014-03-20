@@ -24,6 +24,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import nl.pallett.dbtestingtool.Database;
 import nl.pallett.dbtestingtool.MonetDb;
 import nl.pallett.dbtestingtool.PostgresDb;
+import nl.pallett.dbtestingtool.SqlServerDb;
 import nl.pallett.dbtestingtool.TestSet;
 import nl.pallett.dbtestingtool.TestRunner;
 import org.w3c.dom.Document;
@@ -73,6 +74,7 @@ public class SetupTestScreen extends javax.swing.JFrame {
         DefaultComboBoxModel model = new DefaultComboBoxModel();
         model.addElement(new PostgresDb());
         model.addElement(new MonetDb());
+        model.addElement(new SqlServerDb());
         
         comboDatabaseType.setModel(model);
         

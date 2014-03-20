@@ -5,6 +5,7 @@
 package nl.pallett.dbtestingtool;
 
 import java.sql.*;
+import java.util.Properties;
 import org.w3c.dom.Node;
 
 /**
@@ -93,9 +94,46 @@ public abstract class Database {
         this.table = table;
     }
     
+    protected Connection openStandardConnection (String driverName, String urlPrefix) throws SQLException {
+        // load driver class
+        try {
+            Class.forName(driverName);
+        } catch (ClassNotFoundException ex) {
+            throw new SQLException(this.toString() + " JDBC Driver cannot be initialized");
+        }
+                
+        String url = urlPrefix + "://" + this.host + "/" + this.name;
+        Properties props = new Properties();
+        
+        if (user.length() > 0) {
+            props.setProperty("user", user);
+            props.setProperty("password", password);
+        }
+
+        return DriverManager.getConnection(url, props);
+    }
+    
     public abstract void openConnection () throws SQLException;
     
     public abstract void closeConnection () throws SQLException;
+    
+    protected boolean standardTableExists (Connection conn) throws SQLException {
+        PreparedStatement q = conn.prepareStatement("SELECT * FROM " + this.table + " LIMIT 1");
+        
+        try {
+            q.execute();
+        } catch (SQLException e) {
+            String msg = e.getMessage();
+            if (e.getSQLState().equals("42P01")) {
+                return false;
+            } else {
+                throw e;
+            }
+        }
+        
+        q.close();
+        return true;
+    }
     
     public abstract boolean tableExists() throws SQLException;
     

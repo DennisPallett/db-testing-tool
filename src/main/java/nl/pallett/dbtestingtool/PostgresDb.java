@@ -23,21 +23,7 @@ public class PostgresDb extends Database {
 
     @Override
     public void openConnection() throws SQLException {
-        try {
-            Class.forName("org.postgresql.Driver");
-        } catch (ClassNotFoundException ex) {
-            throw new SQLException("PostgreSQL JDBC Driver cannot be initialized");
-        }
-        
-        String url = "jdbc:postgresql://" + this.host + "/" + this.name;
-        Properties props = new Properties();
-        
-        if (user.length() > 0) {
-            props.setProperty("user", user);
-            props.setProperty("password", password);
-        }
-
-        conn = DriverManager.getConnection(url, props);
+        conn = this.openStandardConnection("org.postgresql.Driver", "jdbc:postgresql");
     }
 
     @Override
@@ -49,21 +35,7 @@ public class PostgresDb extends Database {
 
     @Override
     public boolean tableExists() throws SQLException {
-        PreparedStatement q = conn.prepareStatement("SELECT * FROM " + this.table + " LIMIT 1");
-        
-        try {
-            q.execute();
-        } catch (SQLException e) {
-            String msg = e.getMessage();
-            if (e.getSQLState().equals("42P01")) {
-                return false;
-            } else {
-                throw e;
-            }
-        }
-        
-        q.close();
-        return true;
+       return this.standardTableExists(conn);
     }
     
     @Override
