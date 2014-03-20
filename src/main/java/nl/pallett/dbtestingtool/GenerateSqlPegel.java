@@ -105,6 +105,23 @@ public class GenerateSqlPegel extends GenerateSql {
         return ret;
     }
 
+    @Override
+    protected String generateMySql(Node queryNode, int groupCount, int rowCount) throws Exception {
+        String[] extract = extractStartEnd(queryNode);        
+        String start = extract[0];
+        String end = extract[1];
+        
+        String sql = " SELECT MEDIAN(PEGEL) FROM " + table;
+        sql += " WHERE timed >= " + start + " AND timed <= " + end;
+        
+        if (groupCount > 1) {
+            String groupBy = generateGroupBy(start, end, groupCount, rowCount);
+            sql += " GROUP BY CEIL(" + groupBy + ")";       
+        }        
+        
+        return sql;
+    }
+
     
     
 }

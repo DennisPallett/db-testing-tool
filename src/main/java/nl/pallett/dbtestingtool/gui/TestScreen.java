@@ -16,6 +16,7 @@ import javax.swing.JLabel;
 import javax.swing.text.DefaultCaret;
 import nl.pallett.dbtestingtool.Database;
 import nl.pallett.dbtestingtool.MonetDb;
+import nl.pallett.dbtestingtool.MySqlDb;
 import nl.pallett.dbtestingtool.PostgresDb;
 import nl.pallett.dbtestingtool.SqlServerDb;
 import nl.pallett.dbtestingtool.TestSet;
@@ -85,11 +86,11 @@ public class TestScreen extends javax.swing.JFrame implements Observer {
         
         querySetList.add(querySet);
         
-        Database database = new SqlServerDb();
+        Database database = new MySqlDb();
         database.setName("test");
         database.setHost("localhost");
-        database.setUser("sa");
-        database.setPassword("root");
+        database.setUser("root");
+        database.setPassword("sa");
         database.setTable("pegel_andelfingen_10k");
         
         ArrayList<Integer> groupList = new ArrayList<Integer>();

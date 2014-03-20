@@ -23,6 +23,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import nl.pallett.dbtestingtool.Database;
 import nl.pallett.dbtestingtool.MonetDb;
+import nl.pallett.dbtestingtool.MySqlDb;
 import nl.pallett.dbtestingtool.PostgresDb;
 import nl.pallett.dbtestingtool.SqlServerDb;
 import nl.pallett.dbtestingtool.TestSet;
@@ -75,6 +76,7 @@ public class SetupTestScreen extends javax.swing.JFrame {
         model.addElement(new PostgresDb());
         model.addElement(new MonetDb());
         model.addElement(new SqlServerDb());
+        model.addElement(new MySqlDb());
         
         comboDatabaseType.setModel(model);
         

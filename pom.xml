@@ -68,12 +68,18 @@
                 </dependency>    
                 
                 <!-- SQL Server JDBC driver -->
-                <!-- MS SQL JDBC driver -->
 		<dependency>
 			<groupId>net.sourceforge.jtds</groupId>
 			<artifactId>jtds</artifactId>
 			<version>1.2.7</version>
-		</dependency>       
+		</dependency>     
+                
+                <!-- MySQL JDBC driver -->
+                <dependency>
+                    <groupId>mysql</groupId>
+                    <artifactId>mysql-connector-java</artifactId>
+                    <version>5.1.6</version>
+                </dependency>
 	</dependencies>
 
 	<build>
