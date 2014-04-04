@@ -108,6 +108,10 @@ public class TestRunner extends Observable implements Runnable {
         
         if (source.equals("pegel_andelfingen")) {
             generateSql = new GenerateSqlPegel();
+        } else if (source.equals("knmi_weather")) {
+            generateSql = new GenerateSqlKnmi();
+        } else if (source.equals("twitter")) {
+            generateSql = new GenerateSqlTwitter();
         } else {
             logMessage("ERROR: unknown dataset '" + source + '"');
             state = State.FAILED;

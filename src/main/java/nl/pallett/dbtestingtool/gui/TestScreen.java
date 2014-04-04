@@ -79,19 +79,19 @@ public class TestScreen extends javax.swing.JFrame implements Observer {
         ArrayList<TestSet> querySetList = new ArrayList<TestSet>();
         TestSet querySet = new TestSet();
         try {
-            querySet.loadFile("D:\\University\\Afstuderen\\Data\\pegel_andelfingen\\testsets\\testqueries-10k.xml");
+            querySet.loadFile("D:\\University\\Afstuderen\\Data\\twitter\\testsets\\testqueries-10k.xml");
         } catch (Exception ex) {
             Logger.getLogger(TestScreen.class.getName()).log(Level.SEVERE, null, ex);
         }
         
         querySetList.add(querySet);
         
-        Database database = new MySqlDb();
-        database.setName("test");
+        Database database = new PostgresDb();
+        database.setName("twitter");
         database.setHost("localhost");
-        database.setUser("root");
+        database.setUser("postgres");
         database.setPassword("sa");
-        database.setTable("pegel_andelfingen_10k");
+        database.setTable("twitter_10k");
         
         ArrayList<Integer> groupList = new ArrayList<Integer>();
         groupList.add(1);
