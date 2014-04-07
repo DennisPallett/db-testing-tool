@@ -61,7 +61,7 @@ public class SetupTestScreen extends javax.swing.JFrame {
         // try to auto-generate the table name based on the queryset list
         TestSet lastSet = testSetList.get(testSetList.size()-1);
         String table = lastSet.getSource() + "_";
-        if (lastSet.getSize() > 1000000) {
+        if (lastSet.getSize() >= 1000000) {
             table += (lastSet.getSize()/1000000) + "mm";
         } else if (lastSet.getSize() > 1000) {
             table += (lastSet.getSize()/1000) + "k";

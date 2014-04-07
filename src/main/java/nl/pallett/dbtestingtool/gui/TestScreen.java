@@ -86,11 +86,11 @@ public class TestScreen extends javax.swing.JFrame implements Observer {
         
         querySetList.add(querySet);
         
-        Database database = new SqlServerDb();
+        Database database = new MySqlDb();
         database.setName("twitter");
         database.setHost("localhost");
-        database.setUser("sa");
-        database.setPassword("root");
+        database.setUser("root");
+        database.setPassword("sa");
         database.setTable("twitter_10k_xy");
         
         ArrayList<Integer> groupList = new ArrayList<Integer>();

@@ -187,7 +187,36 @@ public class GenerateSqlTwitter extends GenerateSql {
 
     @Override
     protected String generateMySql(Node queryNode, int groupCount, int rowCount) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+         if (this.table.toLowerCase().endsWith("_xy")) {
+            return generateXy(queryNode, groupCount, rowCount);
+        } else {
+            QueryParams params = new QueryParams(queryNode);
+
+            String sql = "";
+
+            if (groupCount == 1) {
+                sql = " SELECT MEDIAN(len) FROM " + this.table + " WHERE " +
+                      " timed >= " + params.getStartTime() + " AND timed <= " + params.getEndTime() +
+                      " AND Intersects(coordinates, GeomFromText('" + params.getBoundingBoxAsWkt() + "', " + SRID + "))";
+            } else {
+                QueryGroups groups = new QueryGroups(groupCount, params);
+                ArrayList<QueryParams> groupList = groups.getList();
+
+                for(int i=0; i < groupList.size(); i++) {
+                    QueryParams group = groupList.get(i);
+
+                    if (i > 0) {
+                        sql += " UNION ";
+                    }
+
+                    sql += " SELECT " + (i+1) + " AS groupnr, MEDIAN(LEN) FROM " + this.table + " WHERE " +
+                           " timed >= " + params.getStartTime() + " AND timed <= " + params.getEndTime() +
+                           " AND Intersects(coordinates, GeomFromText('" + group.getBoundingBoxAsWkt() + "', " + SRID + "))";
+                }
+            }
+
+            return sql;
+        }
     }
     
     protected String[] extractStartEnd(Node queryNode) throws Exception {
