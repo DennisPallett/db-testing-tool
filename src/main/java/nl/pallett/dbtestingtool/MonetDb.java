@@ -24,7 +24,22 @@ public class MonetDb extends Database {
     * Put escaped quotes around a value.
     */
     public static String quoteValue(String value) {
-        return "'" + value.replaceAll("\\\\", "\\\\\\\\").replaceAll("'", "\\\\'") + "'";
+        return quoteValue(value, true);
+    }
+    
+    public static String quoteValue(String value, boolean includeQuotes) {
+        String ret = "";
+        if (includeQuotes) {
+            ret += "'";
+        }
+        
+        ret += value.replaceAll("\\\\", "\\\\\\\\").replaceAll("'", "\\\\'");
+        
+        if (includeQuotes) {
+            ret += "'";
+        }
+        
+        return ret;        
     }
     
     @Override
@@ -79,12 +94,17 @@ public class MonetDb extends Database {
         // this assumes no other queries have been run in the mean time
         // hence, not thread-safe or safe from other clients
         Statement newQ = conn.createStatement();
-        String timeQuery =  " SELECT query, run" +
+        /*String timeQuery =  " SELECT query, run" +
                             " FROM sys.querylog_calls AS qc" +
                             " INNER JOIN sys.querylog_catalog AS qd ON qc.id = qd.id" +
-                            " WHERE LCase(query) LIKE " + MonetDb.quoteValue("prepare " + sql.toLowerCase() + "%") +
+                            " WHERE LCase(query) LIKE " + 
+                            MonetDb.quoteValue("prepare " + MonetDb.quoteValue(sql.toLowerCase(), false) + "%") +
                             " ORDER BY \"start\" DESC" +
                             " LIMIT 1";
+        */
+        String timeQuery = " SELECT query, run FROM sys.querylog_calls AS qc INNER JOIN sys.querylog_catalog AS qd ON qc.id = qd.id" +
+                           " ORDER by \"start\" DESC" +
+                           " LIMIT 1";
         System.out.println(timeQuery);
         res = newQ.executeQuery(timeQuery);
         

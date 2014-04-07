@@ -18,30 +18,101 @@ public class GenerateSqlTwitter extends GenerateSql {
     
     @Override
     protected String generatePostgres(Node queryNode, int groupCount, int rowCount) throws Exception {
+        if (this.table.toLowerCase().endsWith("_xy")) {
+            return generateXy(queryNode, groupCount, rowCount);
+        } else {
+            QueryParams params = new QueryParams(queryNode);
+
+            String sql = "";
+
+            if (groupCount == 1) {
+                sql = " SELECT MEDIAN(len) FROM " + this.table + " WHERE " +
+                      " timed >= " + params.getStartTime() + " AND timed <= " + params.getEndTime() +
+                      " AND ST_Intersects(coordinates, ST_GeomFromText('" + params.getBoundingBoxAsWkt() + "', " + SRID + "))";
+            } else {
+                QueryGroups groups = new QueryGroups(groupCount, params);
+                ArrayList<QueryParams> groupList = groups.getList();
+
+                for(int i=0; i < groupList.size(); i++) {
+                    QueryParams group = groupList.get(i);
+
+                    if (i > 0) {
+                        sql += " UNION ";
+                    }
+
+                    sql += " SELECT " + (i+1) + " AS groupnr, MEDIAN(LEN) FROM " + this.table + " WHERE " +
+                           " timed >= " + params.getStartTime() + " AND timed <= " + params.getEndTime() +
+                           " AND ST_Intersects(coordinates, ST_GeomFromText('" + group.getBoundingBoxAsWkt() + "', " + SRID + "))";
+                }
+            }
+
+            return sql;
+        }
+    }
+
+    @Override
+    protected String generateMonetdb(Node queryNode, int groupCount, int rowCount) throws Exception {
+        if (this.table.toLowerCase().endsWith("_xy")) {
+            return generateXy(queryNode, groupCount, rowCount);
+        } else {        
+            QueryParams params = new QueryParams(queryNode);
+
+            String sql = "";
+
+            if (groupCount == 1) {
+                sql = " SELECT MEDIAN(len) FROM " + this.table + " WHERE " +
+                      " timed >= " + params.getStartTime() + " AND timed <= " + params.getEndTime() +
+                      " AND \"Intersect\"(coordinates, PolyFromText('" + params.getBoundingBoxAsWkt() + "', " + SRID + "))";
+            } else {
+                QueryGroups groups = new QueryGroups(groupCount, params);
+                ArrayList<QueryParams> groupList = groups.getList();
+
+                for(int i=0; i < groupList.size(); i++) {
+                    QueryParams group = groupList.get(i);
+
+                    if (i > 0) {
+                        sql += " UNION ";
+                    }
+
+                    sql += " SELECT " + (i+1) + " AS groupnr, MEDIAN(LEN) FROM " + this.table + " WHERE " +
+                           " timed >= " + params.getStartTime() + " AND timed <= " + params.getEndTime() +
+                           " AND \"Intersect\"(coordinates, PolyFromText('" + group.getBoundingBoxAsWkt() + "', " + SRID + "))";
+                }
+            }
+
+            return sql;
+        }
+    }
+    
+    protected String generateXy (Node queryNode, int groupCount, int rowCount) throws Exception {
         QueryParams params = new QueryParams(queryNode);
-        
-        
-        
+
         String sql = "";
         
         if (groupCount == 1) {
             sql = " SELECT MEDIAN(len) FROM " + this.table + " WHERE " +
                   " timed >= " + params.getStartTime() + " AND timed <= " + params.getEndTime() +
-                  " AND ST_Intersects(coordinates, ST_GeomFromText('" + params.getBoundingBoxAsWkt() + "', " + SRID + "))";
+                  " AND x_coordinate >= " + params.getMinX() +
+                  " AND x_coordinate <= " + params.getMaxX() +
+                  " AND y_coordinate >= " + params.getMinY() +
+                  " AND y_coordinate <= " + params.getMaxY();
         } else {
             QueryGroups groups = new QueryGroups(groupCount, params);
             ArrayList<QueryParams> groupList = groups.getList();
-            
+
             for(int i=0; i < groupList.size(); i++) {
                 QueryParams group = groupList.get(i);
-                
+
                 if (i > 0) {
                     sql += " UNION ";
                 }
-                
+
                 sql += " SELECT " + (i+1) + " AS groupnr, MEDIAN(LEN) FROM " + this.table + " WHERE " +
                        " timed >= " + params.getStartTime() + " AND timed <= " + params.getEndTime() +
-                       " AND ST_Intersects(coordinates, ST_GeomFromText('" + group.getBoundingBoxAsWkt() + "', " + SRID + "))";
+                       " AND x_coordinate >= " + group.getMinX() +
+                        " AND x_coordinate <= " + group.getMaxX() +
+                        " AND y_coordinate >= " + group.getMinY() +
+                        " AND y_coordinate <= " + group.getMaxY();
             }
         }
         
@@ -49,13 +120,69 @@ public class GenerateSqlTwitter extends GenerateSql {
     }
 
     @Override
-    protected String generateMonetdb(Node queryNode, int groupCount, int rowCount) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
     protected String generateSqlServer(Node queryNode, int groupCount, int rowCount) throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        QueryParams params = new QueryParams(queryNode);
+        String sql = "";
+        
+        if (this.table.toLowerCase().endsWith("_xy")) {
+            if (groupCount == 1) {
+                sql = " SELECT DISTINCT '1', " + 
+                      " PERCENTILE_DISC (0.5) WITHIN GROUP (ORDER BY len ASC) OVER (PARTITION BY FLOOR(len/1000))" +
+                      " FROM " + this.table + " WHERE " +
+                      " timed >= " + params.getStartTime() + " AND timed <= " + params.getEndTime() +
+                      " AND x_coordinate >= " + params.getMinX() +
+                      " AND x_coordinate <= " + params.getMaxX() +
+                      " AND y_coordinate >= " + params.getMinY() +
+                      " AND y_coordinate <= " + params.getMaxY();
+            } else {
+                QueryGroups groups = new QueryGroups(groupCount, params);
+                ArrayList<QueryParams> groupList = groups.getList();
+
+                for(int i=0; i < groupList.size(); i++) {
+                    QueryParams group = groupList.get(i);
+
+                    if (i > 0) {
+                        sql += " UNION ";
+                    }
+
+                    sql += " SELECT DISTINCT '" + (i+1) + "' AS groupnr, " +
+                           " PERCENTILE_DISC (0.5) WITHIN GROUP (ORDER BY len ASC) OVER (PARTITION BY FLOOR(len/1000))" +
+                           " FROM " + this.table + " WHERE " +
+                           " timed >= " + params.getStartTime() + " AND timed <= " + params.getEndTime() +
+                           " AND x_coordinate >= " + group.getMinX() +
+                           " AND x_coordinate <= " + group.getMaxX() +
+                           " AND y_coordinate >= " + group.getMinY() +
+                           " AND y_coordinate <= " + group.getMaxY();
+                }
+            }
+        } else {        
+            if (groupCount == 1) {
+                sql = " SELECT DISTINCT '1', " + 
+                      " PERCENTILE_DISC (0.5) WITHIN GROUP (ORDER BY len ASC) OVER (PARTITION BY FLOOR(len/1000))" +
+                      " FROM " + this.table + " WHERE " +
+                      " timed >= " + params.getStartTime() + " AND timed <= " + params.getEndTime() +
+                      " AND coordinates.STIntersects(geometry::STGeomFromText('" + params.getBoundingBoxAsWkt() + "', " + SRID + ")) = 1";
+            } else {
+                QueryGroups groups = new QueryGroups(groupCount, params);
+                ArrayList<QueryParams> groupList = groups.getList();
+
+                for(int i=0; i < groupList.size(); i++) {
+                    QueryParams group = groupList.get(i);
+
+                    if (i > 0) {
+                        sql += " UNION ";
+                    }
+
+                    sql += " SELECT DISTINCT '" + (i+1) + "' AS groupnr, " +
+                           " PERCENTILE_DISC (0.5) WITHIN GROUP (ORDER BY len ASC) OVER (PARTITION BY FLOOR(len/1000))" +
+                           " FROM " + this.table + " WHERE " +
+                           " timed >= " + params.getStartTime() + " AND timed <= " + params.getEndTime() +
+                           " AND coordinates.STIntersects(geometry::STGeomFromText('" + group.getBoundingBoxAsWkt() + "', " + SRID + ")) = 1";
+                }
+            }
+        }
+        
+        return sql;
     }
 
     @Override
